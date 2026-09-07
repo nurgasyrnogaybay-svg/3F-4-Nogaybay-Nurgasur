@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AutoShow - Мир автомобилей</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #f0f4f8;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      nav {
+        position: sticky;
+        top: 0;
+        background: linear-gradient(135deg, #1a1a2e, #16213e);
+        padding: 18px 30px;
+        z-index: 100;
+        display: flex;
+        gap: 25px;
+        flex-wrap: wrap;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      }
+      nav a {
+        color: #e0e0e0;
+        text-decoration: none;
+        font-weight: bold;
+        cursor: pointer;
+        padding: 8px 16px;
+        border-radius: 8px;
+        transition: all 0.3s;
+        font-size: 16px;
+      }
+      nav a:hover {
+        background: #0f3460;
+        color: white;
+        transform: translateY(-2px);
+      }
+      nav a:first-child {
+        color: #e94560;
+        font-size: 20px;
+      }
+
+      .content {
+        flex: 1;
+        padding: 30px 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+        width: 100%;
+      }
+
+      footer {
+        background: linear-gradient(135deg, #1a1a2e, #16213e);
+        color: #aaa;
+        text-align: center;
+        padding: 25px;
+        margin-top: auto;
+        border-top: 3px solid #e94560;
+      }
+      footer span {
+        color: #e94560;
+      }
+
+      .page {
+        display: none;
+        animation: fadeIn 0.5s;
+      }
+      .page.active {
+        display: block;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .car-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 30px;
+        margin: 30px 0;
+      }
+      .car-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        transition:
+          transform 0.3s,
+          box-shadow 0.3s;
+      }
+      .car-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+      }
+      .car-card img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+      }
+      .car-card .info {
+        padding: 20px;
+      }
+      .car-card h3 {
+        margin: 0 0 8px 0;
+        color: #1a1a2e;
+        font-size: 22px;
+      }
+      .car-card .price {
+        color: #e94560;
+        font-size: 20px;
+        font-weight: bold;
+        margin: 10px 0;
+      }
+      .car-card p {
+        color: #555;
+        line-height: 1.6;
+        margin: 5px 0;
+      }
+      .car-card .specs {
+        display: flex;
+        gap: 15px;
+        margin-top: 12px;
+        color: #666;
+        font-size: 14px;
+      }
+      .car-card .specs span {
+        background: #f0f4f8;
+        padding: 4px 12px;
+        border-radius: 20px;
+      }
+
+      .form-container {
+        background: white;
+        padding: 35px;
+        border-radius: 16px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        max-width: 500px;
+        margin: 20px 0;
+      }
+      .form-container h2 {
+        color: #1a1a2e;
+        margin-top: 0;
+      }
+      input {
+        width: 100%;
+        padding: 12px 16px;
+        margin: 5px 0 18px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+        background: #fafafa;
+      }
+      input:focus {
+        outline: none;
+        border-color: #e94560;
+        background: white;
+      }
+      button {
+        background: linear-gradient(135deg, #e94560, #c23152);
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        transition: all 0.3s;
+      }
+      button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+      }
+
+      .table-wrapper {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        margin: 20px 0;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 15px 20px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+      }
+      th {
+        background: #1a1a2e;
+        color: white;
+        font-weight: bold;
+      }
+      tr:hover {
+        background: #f8f9fa;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+      }
+      .modal-content {
+        background: white;
+        margin: 10% auto;
+        padding: 30px;
+        width: 90%;
+        max-width: 500px;
+        border-radius: 16px;
+        position: relative;
+        animation: slideDown 0.4s;
+      }
+      @keyframes slideDown {
+        from {
+          transform: translateY(-50px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      .close {
+        position: absolute;
+        right: 20px;
+        top: 10px;
+        font-size: 32px;
+        cursor: pointer;
+        color: #999;
+        transition: color 0.3s;
+      }
+      .close:hover {
+        color: #e94560;
+      }
+
+      .hero-section {
+        background: linear-gradient(135deg, #1a1a2e, #16213e);
+        color: white;
+        padding: 40px;
+        border-radius: 16px;
+        margin-bottom: 30px;
+        text-align: center;
+      }
+      .hero-section h1 {
+        font-size: 42px;
+        margin: 0;
+      }
+      .hero-section h1 span {
+        color: #e94560;
+      }
+      .hero-section p {
+        font-size: 18px;
+        opacity: 0.8;
+      }
+
+      .news-item {
+        background: white;
+        padding: 20px 25px;
+        border-radius: 12px;
+        margin: 15px 0;
+        border-left: 5px solid #e94560;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+      }
+      .news-item h3 {
+        margin: 0 0 8px 0;
+        color: #1a1a2e;
+      }
+      .news-item .date {
+        color: #888;
+        font-size: 14px;
+      }
+
+      .empty-page-content {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 16px;
+      }
+      .empty-page-content .big-icon {
+        font-size: 80px;
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <a onclick="showPage('home')">AutoShow</a>
+      <a onclick="showPage('home')">Главная</a>
+      <a onclick="showPage('register')">Регистрация</a>
+      <a onclick="showPage('login')">Вход</a>
+      <a onclick="showPage('users')">Пользователи</a>
+      <a onclick="showPage('empty')">Пустая</a>
+    </nav>
+
+    <div class="content">
+      <div id="page-home" class="page active">
+        <div class="hero-section">
+          <h1>Добро пожаловать в <span>AutoShow</span></h1>
+          <p>Самый большой каталог автомобилей в Казахстане</p>
+          <button onclick="openModal()" style="margin-top: 20px">
+            Подробнее
+          </button>
+        </div>
+
+        <h2>Популярные модели</h2>
+        <div class="car-grid">
+          <div class="car-card">
+            <img src="https://i.imgur.com/5YhQ6Hf.jpeg" alt="Toyota Camry" />
+            <div class="info">
+              <h3>Toyota Camry</h3>
+              <div class="price">от 15 900 000 ₸</div>
+              <p>Комфортный седан бизнес-класса с элегантным дизайном</p>
+              <div class="specs">
+                <span>2.5L</span>
+                <span>7.8L/100км</span>
+                <span>210 л.с.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="car-card">
+            <img src="https://i.imgur.com/zQnxC7F.jpeg" alt="BMW X5" />
+            <div class="info">
+              <h3>BMW X5</h3>
+              <div class="price">от 28 500 000 ₸</div>
+              <p>Премиальный внедорожник с мощным двигателем и технологиями</p>
+              <div class="specs">
+                <span>3.0L</span>
+                <span>9.2L/100км</span>
+                <span>340 л.с.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="car-card">
+            <img
+              src="https://i.imgur.com/Lt1X5XK.jpeg"
+              alt="Mercedes-Benz E-Class"
+            />
+            <div class="info">
+              <h3>Mercedes-Benz E-Class</h3>
+              <div class="price">от 32 000 000 ₸</div>
+              <p>Икона стиля и комфорта с инновационными технологиями</p>
+              <div class="specs">
+                <span>2.0L</span>
+                <span>7.2L/100км</span>
+                <span>258 л.с.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="car-card">
+            <img src="https://i.imgur.com/KV3u7Ea.jpeg" alt="Lexus RX" />
+            <div class="info">
+              <h3>Lexus RX</h3>
+              <div class="price">от 22 000 000 ₸</div>
+              <p>Японская надежность и роскошь в одном внедорожнике</p>
+              <div class="specs">
+                <span>3.5L</span>
+                <span>10.5L/100км</span>
+                <span>295 л.с.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="car-card">
+            <img src="https://i.imgur.com/6D2XHWR.jpeg" alt="Hyundai Tucson" />
+            <div class="info">
+              <h3>Hyundai Tucson</h3>
+              <div class="price">от 13 500 000 ₸</div>
+              <p>Современный кроссовер с стильным дизайном и экономичностью</p>
+              <div class="specs">
+                <span>2.0L</span>
+                <span>8.1L/100км</span>
+                <span>150 л.с.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="car-card">
+            <img src="https://i.imgur.com/8YjwGMz.jpeg" alt="Audi Q7" />
+            <div class="info">
+              <h3>Audi Q7</h3>
+              <div class="price">от 26 000 000 ₸</div>
+              <p>Немецкий премиум-внедорожник с прогрессивным дизайном</p>
+              <div class="specs">
+                <span>3.0L</span>
+                <span>8.9L/100км</span>
+                <span>286 л.с.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h2>Автоновости</h2>
+        <div class="news-item">
+          <div class="date">6 сентября 2026</div>
+          <h3>В Казахстане начались продажи нового Toyota Land Cruiser</h3>
+          <p>
+            Обновленный внедорожник получил гибридную установку и новый дизайн.
+            Стартовая цена - от 45 млн тенге.
+          </p>
+        </div>
+        <div class="news-item">
+          <div class="date">5 сентября 2026</div>
+          <h3>Электромобили становятся популярнее в Алматы</h3>
+          <p>
+            За последний месяц количество зарядных станций выросло на 30%,
+            продажи электрокаров увеличились в 2 раза.
+          </p>
+        </div>
+        <div class="news-item">
+          <div class="date">4 сентября 2026</div>
+          <h3>Новый Hyundai Santa Fe представлен в Астане</h3>
+          <p>
+            Кроссовер получил обновленный салон, новые технологии и более мощный
+            двигатель.
+          </p>
+        </div>
+      </div>
+
+      <div id="page-register" class="page">
+        <h2>Регистрация</h2>
+        <p style="color: #555; margin-bottom: 20px">
+          Создайте аккаунт, чтобы получить доступ к полному каталогу автомобилей
+        </p>
+        <div class="form-container">
+          <form id="registerForm">
+            <label>Ваше имя</label>
+            <input
+              type="text"
+              id="regName"
+              placeholder="Например: Айбек"
+              required
+            />
+
+            <label>Email</label>
+            <input
+              type="email"
+              id="regEmail"
+              placeholder="example@mail.com"
+              required
+            />
+
+            <label>Пароль</label>
+            <input
+              type="password"
+              id="regPassword"
+              placeholder="Минимум 6 символов"
+              required
+            />
+
+            <button type="submit">Зарегистрироваться</button>
+          </form>
+        </div>
+        <p style="color: #888; font-size: 14px">
+          Уже есть аккаунт? Перейдите на страницу
+          <a onclick="showPage('login')" style="color: #e94560; cursor: pointer"
+            >Входа</a
+          >
+        </p>
+      </div>
+      <div id="page-login" class="page">
+        <h2>Вход в аккаунт</h2>
+        <p style="color: #555; margin-bottom: 20px">
+          Войдите в свой профиль и управляйте своими автомобилями
+        </p>
+        <div class="form-container">
+          <form id="loginForm">
+            <label>Email</label>
+            <input
+              type="email"
+              id="loginEmail"
+              placeholder="example@mail.com"
+              required
+            />
+
+            <label>Пароль</label>
+            <input
+              type="password"
+              id="loginPassword"
+              placeholder="Введите пароль"
+              required
+            />
+
+            <button type="submit">Войти</button>
+          </form>
+        </div>
+        <p style="color: #888; font-size: 14px">
+          Нет аккаунта?
+          <a
+            onclick="showPage('register')"
+            style="color: #e94560; cursor: pointer"
+            >Зарегистрируйтесь</a
+          >
+        </p>
+      </div>
+      <div id="page-users" class="page">
+        <h2>👥 Все пользователи</h2>
+        <p style="color: #555; margin-bottom: 20px">
+          Список зарегистрированных пользователей AutoShow
+        </p>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Имя</th>
+                <th>Email</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+        <p style="color: #888; font-size: 14px">
+          Всего пользователей: <span id="userCount">0</span>
+        </p>
+      </div>
+
+      <div id="page-empty" class="page">
+        <div class="empty-page-content">
+          <div
+            style="
+              margin-top: 40px;
+              padding: 20px;
+              background: #f5f5f5;
+              border-radius: 10px;
+            "
+          >
+            <span style="font-size: 30px"></span>
+            <span style="font-size: 30px; margin-left: 15px"></span>
+            <span style="font-size: 30px; margin-left: 15px"></span>
+            <span style="font-size: 30px; margin-left: 15px"></span>
+            <span style="font-size: 30px; margin-left: 15px"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="myModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2 style="color: #1a1a2e">Добро пожаловать в AutoShow!</h2>
+        <p style="font-size: 16px; line-height: 1.8">
+          AutoShow - это ваш надежный помощник в мире автомобилей. Здесь вы
+          найдете:
+        </p>
+        <ul style="font-size: 15px; line-height: 2">
+          <li>Популярные модели с ценами</li>
+          <li>Свежие новости авторынка</li>
+          <li>Возможность сохранить избранное</li>
+          <li>Регистрация для получения обновлений</li>
+        </ul>
+        <p style="color: #888; font-size: 14px">Приятного пользования! 🏁</p>
+      </div>
+    </div>
+    <footer>
+      &copy; 2026 <span>AutoShow</span>. Все права защищены. Сделано с любовью к
+      автомобилям
+    </footer>
+    <script>
+      function getUsers() {
+        return JSON.parse(localStorage.getItem("users")) || [];
+      }
+
+      function saveUsers(users) {
+        localStorage.setItem("users", JSON.stringify(users));
+      }
+
+      function showPage(pageId) {
+        document
+          .querySelectorAll(".page")
+          .forEach((el) => el.classList.remove("active"));
+        document.getElementById(`page-${pageId}`).classList.add("active");
+      }
+
+      function openModal() {
+        document.getElementById("myModal").style.display = "block";
+      }
+
+      function closeModal() {
+        document.getElementById("myModal").style.display = "none";
+      }
+
+      window.onclick = function (event) {
+        const modal = document.getElementById("myModal");
+        if (event.target === modal) closeModal();
+      };
+
+      function renderTable() {
+        const users = getUsers();
+        const tbody = document.getElementById("tableBody");
+        const userCount = document.getElementById("userCount");
+
+        tbody.innerHTML = "";
+
+        if (users.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#888; padding:30px;">Нет зарегистрированных пользователей</td></tr>`;
+          userCount.textContent = "0";
+          return;
+        }
+
+        users.forEach((user, index) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${user.name}</td>
+          <td>${user.email}</td>
+        `;
+          tbody.appendChild(tr);
+        });
+
+        userCount.textContent = users.length;
+      }
+
+      document
+        .getElementById("registerForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const name = document.getElementById("regName").value.trim();
+          const email = document.getElementById("regEmail").value.trim();
+          const password = document.getElementById("regPassword").value;
+
+          if (!name || !email || !password) {
+            alert("Заполните все поля!");
+            return;
+          }
+
+          const users = getUsers();
+
+          if (users.some((u) => u.email === email)) {
+            alert("Пользователь с таким email уже существует!");
+            return;
+          }
+
+          users.push({ name, email, password });
+          saveUsers(users);
+          renderTable();
+
+          alert("Регистрация успешна! Добро пожаловать в AutoShow!");
+          this.reset();
+        });
+
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const email = document.getElementById("loginEmail").value.trim();
+          const password = document.getElementById("loginPassword").value;
+
+          const users = getUsers();
+          const found = users.find(
+            (u) => u.email === email && u.password === password,
+          );
+
+          if (found) {
+            alert(`Добро пожаловать, ${found.name}!`);
+            localStorage.setItem("currentUser", JSON.stringify(found));
+          } else {
+            alert("Неверный email или пароль!");
+          }
+
+          this.reset();
+        });
+
+      renderTable();
+    </script>
+  </body>
+</html>
